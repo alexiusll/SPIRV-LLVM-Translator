@@ -3243,6 +3243,7 @@ Instruction *SPIRVToLLVM::transSPIRVBuiltinFromInst(SPIRVInstruction *BI,
                               BB);
 }
 
+//* 翻译的主要方法
 bool SPIRVToLLVM::translate() {
   if (!transAddressingModel())
     return false;
