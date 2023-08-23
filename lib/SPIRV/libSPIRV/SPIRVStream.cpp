@@ -191,7 +191,7 @@ const SPIRVEncoder &operator<<(const SPIRVEncoder &O, const std::string &Str) {
 }
 
 bool SPIRVDecoder::getWordCountAndOpCode() {
-  if (IS.eof()) {
+  if (IS.eof()) { //* 是否已经结束
     WordCount = 0;
     OpCode = OpNop;
     SPIRVDBG(spvdbgs() << "[SPIRVDecoder] getWordCountAndOpCode EOF "
@@ -212,10 +212,13 @@ bool SPIRVDecoder::getWordCountAndOpCode() {
     *this >> OpCode;
   } else {
 #endif
+    //* Opcode: The 16 high-order bits are the WordCount of the instruction. 
+    //* The 16 low-order bits are the opcode enumerant.
     SPIRVWord WordCountAndOpCode;
     *this >> WordCountAndOpCode;
-    WordCount = WordCountAndOpCode >> 16;
-    OpCode = static_cast<Op>(WordCountAndOpCode & 0xFFFF);
+    //* 指令所占用的完整 word 数，包括包含 word 计数和操作码的word，以及任何可选操作数。指令的word数是指令所占用的总空间。
+    WordCount = WordCountAndOpCode >> 16; //* 获取WordCount
+    OpCode = static_cast<Op>(WordCountAndOpCode & 0xFFFF); //* 获取OpCode
 #ifdef _SPIRV_SUPPORT_TEXT_FMT
   }
 #endif
@@ -232,8 +235,8 @@ bool SPIRVDecoder::getWordCountAndOpCode() {
   return true;
 }
 
-SPIRVEntry *SPIRVDecoder::getEntry() {
-  if (WordCount == 0 || OpCode == OpNop)
+SPIRVEntry *SPIRVDecoder::getEntry() { //* 获取入口？
+  if (WordCount == 0 || OpCode == OpNop) //* 查看是否到末尾
     return nullptr;
   SPIRVEntry *Entry = SPIRVEntry::create(OpCode);
   assert(Entry);
@@ -241,6 +244,7 @@ SPIRVEntry *SPIRVDecoder::getEntry() {
   if (isModuleScopeAllowedOpCode(OpCode) && !Scope) {
   } else
     Entry->setScope(Scope);
+    
   Entry->setWordCount(WordCount);
   if (OpCode != OpLine)
     Entry->setLine(M.getCurrentLine());

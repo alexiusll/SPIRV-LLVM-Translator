@@ -3243,7 +3243,7 @@ Instruction *SPIRVToLLVM::transSPIRVBuiltinFromInst(SPIRVInstruction *BI,
                               BB);
 }
 
-//* 翻译的主要方法
+//*标签： 翻译的主要方法
 bool SPIRVToLLVM::translate() {
   if (!transAddressingModel())
     return false;
@@ -4508,12 +4508,16 @@ Instruction *SPIRVToLLVM::transRelational(SPIRVInstruction *I, BasicBlock *BB) {
   return cast<Instruction>(Mutator.getMutated());
 }
 
+/**
+ * @description: 将 SPIR-V 作为 SPIRVModule 从 istream 中加载。
+ * @return std::unique_ptr<SPIRVModule>
+ */
 std::unique_ptr<SPIRVModule> readSpirvModule(std::istream &IS,
                                              const SPIRV::TranslatorOpts &Opts,
                                              std::string &ErrMsg) {
   std::unique_ptr<SPIRVModule> BM(SPIRVModule::createSPIRVModule(Opts));
 
-  IS >> *BM;
+  IS >> *BM; //* 重载运算符 std::istream &operator>>(std::istream &I, SPIRVModule &M)
   if (!BM->isModuleValid()) {
     BM->getError(ErrMsg);
     return nullptr;

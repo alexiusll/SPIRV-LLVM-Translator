@@ -107,19 +107,24 @@ const SPIRVDecoder &decodeBinary(const SPIRVDecoder &I, T &V) {
 }
 
 #ifdef _SPIRV_SUPPORT_TEXT_FMT
-/// Skip comment and whitespace. Comment starts with ';', ends with '\n'.
+///* 跳过spirv开头的 注释和空白。注释以';'开头，以'\n'结尾。
 inline std::istream &skipcomment(std::istream &IS) {
-  if (IS.eof() || IS.bad())
-    return IS;
+  if (IS.eof() || IS.bad()) //* eof()：这是 std::istream 类的成员函数，用于检查是否已到达文件末尾。
+    return IS; //* bad()：这是 std::istream 类的另一个成员函数，用于检查输入流是否处于错误状态，例如文件读取错误等。
 
-  char C = IS.peek();
+  char C = IS.peek(); //* IS.peek()：peek() 是 std::istream 类的成员函数，用于预览输入流中的下一个字符，而不会将它从输入流中移除。
+  //* 这意味着，调用 peek() 后，输入流的位置不会改变。
 
-  while (std::char_traits<char>::not_eof(C) && std::isspace(C)) {
-    IS.get();
-    C = IS.peek();
+  //* std::char_traits 是 C++ 标准库中用于操作字符类型特性的模板类。
+  //* not_eof 是 std::char_traits 类的静态函数，用于检查字符是否不等于 EOF（End of File）值。
+  while (std::char_traits<char>::not_eof(C) && std::isspace(C)) {//* 在这里，它用于检查字符变量 C 是否不等于 EOF，即是否是有效字符。
+    IS.get(); //* IS.get()：get() 是 std::istream 类的成员函数，用于从输入流中提取一个字符并将流指针前进。在这里，它被调用来读取当前空白字符，以便跳过它。
+    C = IS.peek(); //* C = IS.peek()：这行代码类似于之前解释的部分，从输入流预览下一个字符，并将其赋值给字符变量 C。
   }
-
+  
   while (std::char_traits<char>::not_eof(C) && C == ';') {
+    //* ignore() 是 std::istream 类的成员函数，用于忽略输入流中的字符，直到遇到指定的终止字符（此处为换行符 \n）。
+    //* std::numeric_limits<std::streamsize>::max() 表示最大的流大小值，这里表示要忽略直到换行符为止。
     IS.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     C = IS.peek();
     while (std::char_traits<char>::not_eof(C) && std::isspace(C)) {
@@ -137,7 +142,8 @@ const SPIRVDecoder &operator>>(const SPIRVDecoder &I, T &V) {
 #ifdef _SPIRV_SUPPORT_TEXT_FMT
   if (SPIRVUseTextFormat) {
     uint32_t W;
-    I.IS >> skipcomment >> W;
+    //*skipcomment: 跳过spirv开头的 注释和空白。注释以';'开头，以'\n'结尾。
+    I.IS >> skipcomment >> W; 
     V = static_cast<T>(W);
     SPIRVDBG(spvdbgs() << "Read word: W = " << W << " V = " << V << '\n');
     return I;

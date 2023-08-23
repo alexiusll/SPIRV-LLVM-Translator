@@ -59,19 +59,29 @@ using namespace SPIRV;
 
 namespace SPIRV {
 
+//* 创建指定类型
 template <typename T> SPIRVEntry *create() { return new T(); }
 
 SPIRVEntry *SPIRVEntry::create(Op OpCode) {
+  //* 定义了类型别名
+  //* SPIRVFactoryTy，它是一个指向函数的指针类型。这个函数返回一个指向 SPIRVEntry 类型的指针，即用于构建 SPIR-V 入口的工厂函数的类型。
   typedef SPIRVEntry *(*SPIRVFactoryTy)();
   struct TableEntry {
-    Op Opn;
+    Op Opn; //* 指令
+    //* 指向函数的指针类型。这个变量存储用于构建特定 SPIR-V 指令的工厂函数。
     SPIRVFactoryTy Factory;
+    //* 重载类型转换运算符。允许将 TableEntry 类型转换为 std::pair<const Op, SPIRVFactoryTy> 类型。这是通过重载转换操作符来实现的。
     operator std::pair<const Op, SPIRVFactoryTy>() {
       return std::make_pair(Opn, Factory);
     }
   };
 
   static TableEntry Table[] = {
+//* 其中 (x, ...) 表示这个宏可以接受一个或多个参数。x 是第一个参数，可能是一个代表 SPIR-V 指令的标识符。
+//* {Op##x, &SPIRV::create<SPIRV##x>}：这是宏展开的结果部分，它会替换 _SPIRV_OP 的调用。
+//* Op##x：这是一个将宏参数 x 和 Op 连接起来的方式。这里使用了预处理运算符 ## 来连接 Op 和 x，以便创建一个表示 SPIR-V 指令的枚举值。
+//* &SPIRV::create<SPIRV##x>：这是另一部分，表示 SPIRV 类中的 create 函数，用于创建特定 SPIR-V 指令的实例。
+//* <SPIRV##x> 使用了相同的连接方式，将 SPIRV 和 x 连接起来以生成正确的类型。
 #define _SPIRV_OP(x, ...) {Op##x, &SPIRV::create<SPIRV##x>},
 #define _SPIRV_OP_INTERNAL(x, ...) {internal::Op##x, &SPIRV::create<SPIRV##x>},
 #include "SPIRVOpCodeEnum.h"

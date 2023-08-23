@@ -200,40 +200,31 @@ class SPIRVExtInst;
         (t);                                                                   \
   }
 
-/// All SPIR-V in-memory-representation entities inherits from SPIRVEntry.
-/// Usually there are two flavors of constructors of SPIRV objects:
-///
-/// 1. complete constructor: It requires all the parameters needed to create a
-///    SPIRV entity with complete information which can be validated. It is
-///    usually used by LLVM/SPIR-V translator to create SPIRV object
-///    corresponding to LLVM object. Such constructor calls validate() at
-///    the end of the construction.
-///
-/// 2. incomplete constructor: For leaf classes, it has no parameters.
-///    It is usually called by SPIRVEntry::make(opcode) to create an incomplete
-///    object which should not be validated. Then setWordCount(count) is
-///    called to fix the size of the object if it is variable, and then the
-///    information is filled by the virtual function decode(istream).
-///    After that the object can be validated.
-///
-/// To add a new SPIRV class:
-///
-/// 1. It is recommended to name the class as SPIRVXXX if it has a fixed op code
-///    OpXXX. Although it is not mandatory, doing this facilitates adding it to
-///    the table of the factory function SPIRVEntry::create().
-/// 2. Inherit from proper SPIRV class such as SPIRVType, SPIRVValue,
-///    SPIRVInstruction, etc.
-/// 3. Implement virtual function encode(), decode(), validate().
-/// 4. If the object has variable size, implement virtual function
-///    setWordCount().
-/// 5. If the class has special attributes, e.g. having no id, or having no
-///    type as a value, set them in the constructors.
-/// 6. If the class may represent SPIRV entity which has been added in version
-///    later than 1.0, implement virtual function getRequiredSPIRVVersion().
-///    To automaticly update module's version you can also call protected
-///    function updateModuleVersion() in the constructor.
-/// 7. Add the class to the Table of SPIRVEntry::create().
-/// 8. Add the class to SPIRVToLLVM and LLVMToSPIRV.
+//* 所有的SPIR-V内存表示实体都继承自SPIRVEntry。
+//* 通常有两种类型的SPIRV对象构造函数：
+//*
+//* 1. 完整构造函数：它需要创建具有完整信息的SPIRV实体所需的所有参数，这些参数可以进行验证。
+//* 通常由LLVM/SPIR-V转换器用于创建与LLVM对象对应的SPIRV对象。
+//* 在构造结束时，此构造函数调用validate()进行验证。
+//*
+//* 2. 不完整构造函数：对于叶子类，它没有参数。
+//* 通常由SPIRVEntry::make(opcode)调用，用于创建不完整的对象，不应进行验证。
+//* 然后调用setWordCount(count)来修复对象的大小（如果大小可变），
+//* 然后通过虚函数decode(istream)来填充信息。
+//* 之后可以对对象进行验证。
+//
+//* 要添加一个新的SPIRV类：
+//
+//* 1. 建议如果类有固定的操作码OpXXX，则将类命名为SPIRVXXX。
+//* 尽管这不是强制的，但这样做有助于将其添加到工厂函数SPIRVEntry::create()的表中。
+//* 2. 继承适当的SPIRV类，如SPIRVType、SPIRVValue、SPIRVInstruction等。
+//* 3. 实现虚函数encode()、decode()、validate()。
+//* 4. 如果对象具有可变大小，实现虚函数setWordCount()。
+//* 5. 如果类具有特殊属性，例如没有id，或者作为值没有类型，在构造函数中设置它们。
+//* 6. 如果该类可能表示在1.0版本之后添加的SPIRV实体，实现虚函数getRequiredSPIRVVersion()。
+//* 为了自动更新模块的版本，您还可以在构造函数中调用受保护的函数updateModuleVersion()。
+//* 7. 将类添加到SPIRVEntry::create()的表中。
+//* 8. 将类添加到SPIRVToLLVM和LLVMToSPIRV中。
 
 class SPIRVEntry {
 public:
@@ -464,6 +455,7 @@ protected:
   void setAttr() { setHasNoId(); }
 };
 
+//* 模板类
 template <Op OC> class SPIRVEntryNoId : public SPIRVEntryNoIdGeneric {
 public:
   SPIRVEntryNoId(SPIRVModule *M, unsigned TheWordCount)
@@ -817,6 +809,7 @@ private:
   std::string S;
 };
 
+//* OpCapability 声明一个模块所需要的功能（capabilities）
 class SPIRVCapability : public SPIRVEntryNoId<OpCapability> {
 public:
   SPIRVCapability(SPIRVModule *M, SPIRVCapabilityKind K);

@@ -1987,7 +1987,7 @@ std::istream &operator>>(std::istream &I, SPIRVModule &M) {
   MI.setAutoAddCapability(false);
   MI.setAutoAddExtensions(false);
 
-  SPIRVWord Magic;
+  SPIRVWord Magic; //* Magic number for a SPIR-V module.
   Decoder >> Magic;
   if (!M.getErrorLog().checkError(Magic == MagicNumber, SPIRVEC_InvalidModule,
                                   "invalid magic number")) {
@@ -1995,7 +1995,7 @@ std::istream &operator>>(std::istream &I, SPIRVModule &M) {
     return I;
   }
 
-  Decoder >> MI.SPIRVVersion;
+  Decoder >> MI.SPIRVVersion; //* 检查 spirv 的版本是否已知
   bool SPIRVVersionIsKnown =
       static_cast<uint32_t>(VersionNumber::MinimumVersion) <= MI.SPIRVVersion &&
       MI.SPIRVVersion <= static_cast<uint32_t>(VersionNumber::MaximumVersion);
@@ -2010,7 +2010,7 @@ std::istream &operator>>(std::istream &I, SPIRVModule &M) {
     return I;
   }
 
-  bool SPIRVVersionIsAllowed = M.isAllowedToUseVersion(MI.SPIRVVersion);
+  bool SPIRVVersionIsAllowed = M.isAllowedToUseVersion(MI.SPIRVVersion); //* 检查版本是否可用
   if (!M.getErrorLog().checkError(
           SPIRVVersionIsAllowed, SPIRVEC_InvalidModule,
           "incorrect SPIR-V version number " + to_string(MI.SPIRVVersion) +
@@ -2020,14 +2020,21 @@ std::istream &operator>>(std::istream &I, SPIRVModule &M) {
     return I;
   }
 
-  SPIRVWord Generator = 0;
+  SPIRVWord Generator = 0; //* 获取 生成器的魔数
   Decoder >> Generator;
   MI.GeneratorId = Generator >> 16;
   MI.GeneratorVer = Generator & 0xFFFF;
 
   // Bound for Id
-  Decoder >> MI.NextId;
+  //* 范围；在此模块中，所有的<id>都保证满足
+  //* 0 < id < Bound
+  //* Bound 应该很小，越小越好，模块中的所有<id>都应该密集地靠近0且紧凑地排列。
+  Decoder >> MI.NextId; 
 
+  //* 0（如果需要，为指令架构保留。）
+  //* "InstSchema" 可能代表 "Instruction Schema"，它在计算机科学和编程领域中可能表示一组指令的模式或结构。
+  //* 在编程语言、编译器或虚拟机等环境中，指令模式用于描述特定指令的格式、操作数、操作码等信息。
+  //* 这些模式帮助编程工具识别、解析和处理特定类型的指令。
   Decoder >> MI.InstSchema;
   if (!M.getErrorLog().checkError(MI.InstSchema == SPIRVISCH_Default,
                                   SPIRVEC_InvalidModule,
@@ -2037,6 +2044,7 @@ std::istream &operator>>(std::istream &I, SPIRVModule &M) {
   }
 
   while (Decoder.getWordCountAndOpCode() && M.isModuleValid()) {
+    //* 例子 WordCount = 2, OpCode = spv::OpCapability
     SPIRVEntry *Entry = Decoder.getEntry();
     if (Entry != nullptr)
       M.add(Entry);
